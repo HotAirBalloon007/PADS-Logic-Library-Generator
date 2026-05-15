@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="appTitle">PADS Logic 封装生成器</title>
+  <link rel="stylesheet" href="/web/styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1 data-i18n="appTitle">PADS Logic 封装生成器</h1>
+        <p data-i18n="subtitle">拖入芯片 pinout 截图，校对引脚表，生成 .c / .p 库文件。</p>
+      </div>
+      <div class="topActions">
+        <button id="languageBtn" class="secondary" type="button">English</button>
+        <button id="loadConfigBtn" class="secondary" type="button" data-i18n="loadConfig">读取配置</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <h2 data-i18n="apiTitle">大模型 API</h2>
+        <label>Base URL<input id="baseUrl" placeholder="https://api.openai.com/v1" /></label>
+        <label>API Key<input id="apiKey" type="password" placeholder="sk-..." /></label>
+        <label>Text Model<input id="model" placeholder="deepseek-chat / gpt-4o-mini" /></label>
+        <label class="modelPickerLabel"><span data-i18n="textModelPickerLabel">Text Model 列表</span>
+          <select id="modelSelect"></select>
+        </label>
+        <label>Vision Model<input id="visionModel" data-i18n-placeholder="visionModelPlaceholder" placeholder="gpt-4o / qwen-vl-plus，空则使用 Text Model" /></label>
+        <label class="modelPickerLabel"><span data-i18n="visionModelPickerLabel">Vision Model 列表</span>
+          <select id="visionModelSelect"></select>
+        </label>
+        <div class="row">
+          <label>Temperature<input id="temperature" type="number" step="0.1" value="0" /></label>
+          <label>Timeout(s)<input id="timeoutSec" type="number" value="60" /></label>
+        </div>
+        <div class="actions compact">
+          <button id="loadModelsBtn" class="secondary" type="button" data-i18n="loadModels">获取模型</button>
+          <button id="saveConfigBtn" type="button" data-i18n="saveConfig">保存配置</button>
+          <button id="testConfigBtn" class="secondary" type="button" data-i18n="testApi">测试接口</button>
+          <button id="testVisionBtn" class="secondary" type="button" data-i18n="testVision">测试视觉</button>
+          <span id="apiStatus"></span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-i18n="materialTitle">物料信息</h2>
+        <div id="materialDropZone" class="miniDropzone">
+          <input id="materialImageInput" type="file" accept="image/*" />
+          <span data-i18n="materialDropText">可手工填写，也可拖入物料信息截图识别</span>
+        </div>
+        <div class="actions compact">
+          <button id="parseMaterialBtn" type="button" data-i18n="parseMaterial">识别物料信息</button>
+          <span id="materialStatus"></span>
+        </div>
+        <div class="row">
+          <label>Part Name<input id="partName" placeholder="TPS7A8300" /></label>
+          <label>MPN<input id="mpn" placeholder="TPS7A8300RGRR" /></label>
+        </div>
+        <div class="row">
+          <label><span data-i18n="lcscNumber">商品编号</span><input id="lcscNumber" placeholder="C544500" /></label>
+          <label>Value<input id="value" placeholder="TPS7A8300" /></label>
+        </div>
+        <label><span data-i18n="packageDesc">封装描述</span><input id="packageName" placeholder="VQFN-20-EP(3.5x3.5)" /></label>
+        <label><span data-i18n="pcbDecalName">PCB Decal 名称</span><input id="pcbDecalName" placeholder="VQFN-20-EP_3.5X3.5_RGR" /></label>
+        <label>Description<input id="description" placeholder="TPS7A8300RGRR low-noise LDO" /></label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="pinoutTitle">截图识别</h2>
+      <div id="dropZone" class="dropzone">
+        <input id="imageInput" type="file" accept="image/*" />
+        <div>
+          <strong data-i18n="pinoutDropStrong">拖拽 pinout 图片到这里</strong>
+          <span data-i18n="pinoutDropHint">或点击选择文件。识别后必须人工校对。</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="parseBtn" type="button" data-i18n="parsePinout">调用大模型识别</button>
+        <button id="addPinBtn" class="secondary" type="button" data-i18n="addPin">新增引脚</button>
+        <button id="normalizeBtn" class="secondary" type="button" data-i18n="normalizePins">规范化 Pin 名</button>
+        <span id="status"></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="pinTableTitle">Pin 表校对</h2>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pin</th>
+              <th>Name</th>
+              <th>Side</th>
+              <th>Hidden/EP</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="pinTable"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button id="generateBtn" type="button" data-i18n="generate">生成 .c / .p</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Logic .c</h2>
+        <a id="logicDownload" class="download" href="#" hidden data-i18n="download">下载</a>
+        <textarea id="logicText" spellcheck="false"></textarea>
+      </div>
+      <div class="panel">
+        <h2>Part .p</h2>
+        <a id="partDownload" class="download" href="#" hidden data-i18n="download">下载</a>
+        <textarea id="partText" spellcheck="false"></textarea>
+      </div>
+    </section>
+  </main>
+  <script src="/web/app.js"></script>
+</body>
+</html>

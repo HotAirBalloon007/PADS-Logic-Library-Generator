@@ -1,0 +1,30 @@
+# Local API config / secrets
+config.json
+*.local.json
+
+# Runtime output
+logs/
+output/
+
+# Build output
+dist/
+out/
+out_single/
+single_test/
+*.exe
+!release/padslogic.exe
+
+# Go
+*.test
+coverage.out
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temporary files
+*.log
+*.tmp
+*.bak

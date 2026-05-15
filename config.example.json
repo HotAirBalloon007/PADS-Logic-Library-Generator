@@ -1,0 +1,8 @@
+{
+  "base_url": "https://api.example.com/v1",
+  "api_key": "sk-REPLACE_ME",
+  "model": "gpt-4o-mini",
+  "vision_model": "gpt-4o",
+  "temperature": 0,
+  "timeout_sec": 120
+}
